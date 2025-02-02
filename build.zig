@@ -1,6 +1,5 @@
 // build.zig
 const std = @import("std");
-const raySdk = @import("raylib/src/build.zig");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
@@ -8,16 +7,24 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const exe = b.addExecutable(.{
-        .name = "zig-raylib",
-        .root_source_file = .{ .path = "src/main.zig" },
+        .name = "cube",
+        .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
 
     b.installArtifact(exe);
 
-    const raylib = raySdk.addRaylib(b, target, optimize, .{});
-    exe.addIncludePath(.{ .path = "raylib/src/" });
+    // NOTE: Bring the external library as a dependency
+    const raylib_dep = b.dependency("raylib", .{
+        .target = target,
+        .optimize = optimize,
+        // NOTE: This is how to set options for the external library
+        .shared = false,
+        //.linux_display_backend = .X11,
+    });
+    const raylib = raylib_dep.artifact("raylib");
+    //exe.addIncludePath(.{ .path = "raylib/src/" });
     exe.linkLibrary(raylib);
 
     const run_cmd = b.addRunArtifact(exe);

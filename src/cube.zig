@@ -61,31 +61,31 @@ const corner_drb : usize = 7; //Down Right Back
 
 //reason why moves are in this order is that g1 phase can only use moves that
 //are between 8...18
-const    move_f : u8 = 0;
-const    move_fi : u8 = 1; //inverse
-const    move_b : u8 = 2;
-const    move_bi : u8 = 3; //inverse
-const    move_r : u8 = 4;
-const    move_ri : u8 = 5; //inverse
-const    move_l : u8 = 6;
-const    move_li : u8 = 7; //inverse
-const    move_u : u8 = 8;
-const    move_ui : u8 = 9; //inverse
-const    move_d : u8 = 10;
-const    move_di : u8 = 11; //inverse
-const    move_u2 : u8 = 12;
-const    move_r2 : u8 = 13;
-const    move_f2 : u8 = 14;
-const    move_d2 : u8 = 15;
-const    move_l2 : u8 = 16;
-const    move_b2 : u8 = 17;
+pub const    move_f : u8 = 0;
+pub const    move_fi : u8 = 1; //inverse
+pub const    move_b : u8 = 2;
+pub const    move_bi : u8 = 3; //inverse
+pub const    move_r : u8 = 4;
+pub const    move_ri : u8 = 5; //inverse
+pub const    move_l : u8 = 6;
+pub const    move_li : u8 = 7; //inverse
+pub const    move_u : u8 = 8;
+pub const    move_ui : u8 = 9; //inverse
+pub const    move_d : u8 = 10;
+pub const    move_di : u8 = 11; //inverse
+pub const    move_u2 : u8 = 12;
+pub const    move_r2 : u8 = 13;
+pub const    move_f2 : u8 = 14;
+pub const    move_d2 : u8 = 15;
+pub const    move_l2 : u8 = 16;
+pub const    move_b2 : u8 = 17;
 
 pub fn edge_twist(orientation: u8) u8 {
-    var t = (orientation + 1) % 2;
+    const t = (orientation + 1) % 2;
     return t;
 }
 pub fn corner_twist(orientation: u8) u8 {
-    var t = (orientation + 1) % 3;
+    const t = (orientation + 1) % 3;
     return t;
 }
 
@@ -113,6 +113,71 @@ pub const cube = struct {
         }
         return false;
     }
+    pub fn scramble(self: *cube, moves: []u8) void {
+        for (moves) |m| {
+            self.rotate(m);
+        }
+    }
+    pub fn scramble_str(self: *cube, moves: []const u8) void {
+        var it = std.mem.splitSequence(u8, moves, " ");
+        while (it.next()) |m| {
+            if(std.mem.eql(u8, m, "F" )) {
+                self.rotate(move_f);
+            }
+            else if(std.mem.eql(u8, m, "U")) {
+                self.rotate(move_u);
+            }
+            else if(std.mem.eql(u8, m, "D")) {
+                self.rotate(move_d);
+            }
+            else if(std.mem.eql(u8, m, "B")) {
+                self.rotate(move_b);
+            }
+            else if(std.mem.eql(u8, m, "R")) {
+                self.rotate(move_r);
+            }
+            else if(std.mem.eql(u8, m, "L")) {
+                self.rotate(move_l);
+            }
+            else if(std.mem.eql(u8, m, "F2")) {
+                self.rotate(move_f2);
+            }
+            else if(std.mem.eql(u8, m, "B2")) {
+                self.rotate(move_b2);
+            }
+            else if(std.mem.eql(u8, m, "U2")) {
+                self.rotate(move_u2);
+            }
+            else if(std.mem.eql(u8, m, "D2")) {
+                self.rotate(move_d2);
+            }
+            else if(std.mem.eql(u8, m, "L2")) {
+                self.rotate(move_l2);
+            }
+            else if(std.mem.eql(u8, m, "R2")) {
+                self.rotate(move_r2);
+            }
+            else if(std.mem.eql(u8, m, "L'")) {
+                self.rotate(move_li);
+            }
+            else if(std.mem.eql(u8, m, "R'")) {
+                self.rotate(move_ri);
+            }
+            else if(std.mem.eql(u8, m, "U'")) {
+                self.rotate(move_ui);
+            }
+            else if(std.mem.eql(u8, m, "D'")) {
+                self.rotate(move_di);
+            }
+            else if(std.mem.eql(u8, m, "F'")) {
+                self.rotate(move_fi);
+            }
+            else if(std.mem.eql(u8, m, "B'")) {
+                self.rotate(move_bi);
+            }
+        }
+    }
+
     pub fn rotate(self: *cube, move: u8) void {
         switch (move) {
             move_f => {
@@ -191,10 +256,10 @@ pub const cube = struct {
         }
     }
     pub fn up(self: *cube) void {
-        var n_e = [4] u8 { self.e[1], self.e[2], self.e[3], self.e[0]};
-        var n_c = [4] u8 { self.c[1], self.c[2], self.c[3], self.c[0]};
-        var n_eo = [4] u8 { self.e_o[1], self.e_o[2], self.e_o[3], self.e_o[0]};
-        var n_co = [4] u8 { self.c_o[1], self.c_o[2], self.c_o[3], self.c_o[0]};
+        const n_e = [4] u8 { self.e[1], self.e[2], self.e[3], self.e[0]};
+        const n_c = [4] u8 { self.c[1], self.c[2], self.c[3], self.c[0]};
+        const n_eo = [4] u8 { self.e_o[1], self.e_o[2], self.e_o[3], self.e_o[0]};
+        const n_co = [4] u8 { self.c_o[1], self.c_o[2], self.c_o[3], self.c_o[0]};
         var i : usize = 0;
         while(i < 4) : (i += 1) {
             self.e[i] = n_e[i];
@@ -204,10 +269,10 @@ pub const cube = struct {
         }
     }
     pub fn down(self: *cube) void {
-        var n_e = [4] u8 { self.e[7], self.e[4], self.e[5], self.e[6]};
-        var n_c = [4] u8 { self.c[5], self.c[6], self.c[7], self.c[4]};
-        var n_eo = [4] u8 { self.e_o[7], self.e_o[4], self.e_o[5], self.e_o[6]};
-        var n_co = [4] u8 { self.c_o[5], self.c_o[6], self.c_o[7], self.c_o[4]};
+        const n_e = [4] u8 { self.e[7], self.e[4], self.e[5], self.e[6]};
+        const n_c = [4] u8 { self.c[5], self.c[6], self.c[7], self.c[4]};
+        const n_eo = [4] u8 { self.e_o[7], self.e_o[4], self.e_o[5], self.e_o[6]};
+        const n_co = [4] u8 { self.c_o[5], self.c_o[6], self.c_o[7], self.c_o[4]};
         var i : usize = 0;
         while(i < 4) : (i += 1) {
             self.e[i + 4] = n_e[i];

@@ -177,25 +177,25 @@ pub fn getCubeFaces(colors: []u8, state: cube.cube) void
     //fill edge stickers
     var i: u32 = 0;
     while (i < 12) : (i += 1) {
-        var edge = state.e[i];
-        var twist = state.e_o[i];
-        var primary = edgecolors[edge].color[twist];
-        var secondary = edgecolors[edge].color[(twist + 1) % 2];
-        var tile0 = tileidx[i*2];
-        var tile1 = tileidx[i*2 + 1];
+        const edge = state.e[i];
+        const twist = state.e_o[i];
+        const primary = edgecolors[edge].color[twist];
+        const secondary = edgecolors[edge].color[(twist + 1) % 2];
+        const tile0 = tileidx[i*2];
+        const tile1 = tileidx[i*2 + 1];
         colors[tile0] = primary;
         colors[tile1] = secondary;
     }
     i = 0;
     while (i < 8) : (i += 1) {
-        var corner = state.c[i];
-        var twist = state.c_o[i];
-        var primary = cornercolors[corner].color[twist];
-        var secondary = cornercolors[corner].color[(twist + 1) % 3];
-        var tertiary = cornercolors[corner].color[(twist + 2) % 3];
-        var tile0 = tileidx1[i*3];
-        var tile1 = tileidx1[i*3 + 1];
-        var tile2 = tileidx1[i*3 + 2];
+        const corner = state.c[i];
+        const twist = state.c_o[i];
+        const primary = cornercolors[corner].color[twist];
+        const secondary = cornercolors[corner].color[(twist + 1) % 3];
+        const tertiary = cornercolors[corner].color[(twist + 2) % 3];
+        const tile0 = tileidx1[i*3];
+        const tile1 = tileidx1[i*3 + 1];
+        const tile2 = tileidx1[i*3 + 2];
         colors[tile0] = primary;
         colors[tile1] = secondary;
         colors[tile2] = tertiary;
@@ -208,69 +208,35 @@ pub fn main() !void {
     const allocator = gpa.allocator();
     var p = try prune.prune.init(allocator);
     defer p.deinit();
-    try p.gen_g0_prune_tables();
-    try p.gen_g1_prune_tables();
+    if (p.files_exist() == false) {
+        try p.gen_g0_prune_tables();
+        try p.gen_g1_prune_tables();
+        try p.store_prune_tables();
+    }
+    else {
+        try p.load_prune_tables();
+        //try p.gen_g0_prune_tables();
+        //try p.gen_g1_prune_tables();
+    }
     var state = cube.cube.init();
-    //perform superflip to test performance of full solve
-    state.up();
-    state.right();
-    state.right();
-    state.front();
-    state.front();
-    state.front();
-    state.right();
-    state.down();
-    state.down();
-    state.down();
-    state.left();
-    state.back();
-    state.back();
-    state.back();
-    state.right();
-    state.up();
-    state.up();
-    state.up();
-    state.right();
-    state.up();
-    state.up();
-    state.up();
-    state.down();
-    state.front();
-    state.front();
-    state.front();
-    state.up();
-    state.front();
-    state.front();
-    state.front();
-    state.up();
-    state.up();
-    state.up();
-    state.down();
-    state.down();
-    state.down();
-    state.back();
-    state.left();
-    state.left();
-    state.left();
-    state.front();
-    state.front();
-    state.front();
-    state.back();
-    state.back();
-    state.back();
-    state.down();
-    state.down();
-    state.down();
-    state.left();
-    state.left();
-    state.left();
+    
+    var scramble = std.ArrayList(u8).init(allocator);
+    state = cube.cube.init();
+
+    state.scramble_str("R U' R F2 R2 U R U2 R' U' R U R F2 R2");
+    scramble.clearRetainingCapacity();
+    try scramble.appendSlice("Scramble: R U' R F2' R2' U R U2 R' U' R U R F2' R2'\n");
 
     //var sol = try solve_g0(allocator, 30, state, &p);
-    var sol = try prune.solve_full(allocator, 60, state, &p);
-    var i: usize = 0;
+    //var sol = try prune.solve_full(allocator, 60, state, &p);
+    //const sol = try prune.solve_full2(allocator, 5, 60, state, &p);
+    const sol = try prune.solve_full2(allocator, 2, 60, state, &p);
+    var i : u32 = 0;
+    var best = std.ArrayList(u8).init(allocator);
+    try best.appendSlice("best: ");
     std.debug.print("solution: ", .{});
     while (i < sol.depth) : (i += 1) {
-        var move = switch (sol.moves[i]) {
+        const move = switch (sol.moves[i]) {
             0 => "F",
             1 => "F'",
             2 => "B",
@@ -291,6 +257,8 @@ pub fn main() !void {
             17 => "B2",
             else => "",
         };
+        try best.appendSlice(move);
+        try best.appendSlice(" ");
         std.debug.print("{s} ", .{move});
     }
     std.debug.print(" depth: {} \n", .{sol.depth});
@@ -315,19 +283,23 @@ pub fn main() !void {
         };
     }
     getCubeFaces(&cubecolors, state);
-    
 
     while (!ray.WindowShouldClose()) {
     	ray.BeginDrawing();
-            defer ray.EndDrawing();
+        defer ray.EndDrawing();
 
     	ray.ClearBackground(ray.BLACK);
             
-            drawRubiks(cubecolors[0..]);
-            ray.DrawText("Hello World", 190, 190, 20, ray.RED);
+        drawRubiks(cubecolors[0..]);
+        try scramble.append(0);
+        try best.append(0);
+        const x1 : []const u8 = scramble.items[0..scramble.items.len];
+        //ray.DrawText(@ptrCast(scramble.items[0..scramble.items.len].ptr), 10, 490, 18, ray.RED);
+        ray.DrawText(@ptrCast(x1.ptr), 10, 490, 18, ray.RED);
+        ray.DrawText(@ptrCast(best.items[0..best.items.len].ptr), 10, 550, 18, ray.GREEN);
 
-            ray.DrawFPS(10,10);
+        ray.DrawFPS(10,10);
 
-	}
+    }
 }
 

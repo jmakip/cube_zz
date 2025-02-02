@@ -1,0 +1,12 @@
+.{
+    .name = "cube",
+    .version = "0.0.1",
+    .dependencies = .{
+            .raylib = .{ .path = "./raylib/" },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}
